@@ -1,0 +1,1 @@
+# rubiks-cube-devil-number
