@@ -6,9 +6,6 @@ string ColorName = "WYGBOR";
 
 typedef vector<Color> vc;
 
-const int DIM = 3;
-const int N_FACES = 6;
-
 // indexes of the pieces in a (non-middle) layer
 struct Layer {
     //    ur um ul
@@ -96,9 +93,9 @@ struct RubiksCube {
     //    ur um ul    |     8  5  2 
     // ll tl tm tr rr | 20 45 46 47 35
     // lm ml mm mr rm | 23 48 49 50 32
-    // lr bl bm br rl | 25 51 52 53 29
+    // lr bl bm br rl | 26 51 52 53 29
     //    dl dm dr    |    11 14 17 
-    Layer right {45, 46, 47, 48, 49, 50, 51, 52, 53, 20, 23, 25, 2, 5, 8, 29, 32, 35, 11, 14, 17};
+    Layer right {45, 46, 47, 48, 49, 50, 51, 52, 53, 20, 23, 26, 2, 5, 8, 29, 32, 35, 11, 14, 17};
 
     // ========================================================================
     // face rotations
@@ -150,31 +147,30 @@ struct RubiksCube {
     
     // ------------------------------------------------------------------------
     
-    // TODO
     void counterClockwiseRotate(Layer x) {
-        // //    ur um ul    |    lr lm ll
-        // // ll tl tm tr rr | dl bl ml tl ur
-        // // lm ml mm mr rm | dm bm mm tm um
-        // // lr bl bm br rl | dr br mr tr ul
-        // //    dl dm dr    |    rl rm rr
+        //    ur um ul    |    rr rm rl
+        // ll tl tm tr rr | ul tr mr br dr
+        // lm ml mm mr rm | um tm mm bm dm
+        // lr bl bm br rl | ur tl ml bl dl
+        //    dl dm dr    |    ll lm lr
         
-        // vc prev(cube);
+        vc prev(cube);
         
-        // // current (front) face
-        // cube[x.tl] = prev[x.bl], cube[x.tm] = prev[x.ml], cube[x.tr] = prev[x.tl];
-        // cube[x.ml] = prev[x.bm], cube[x.mm] = prev[x.mm], cube[x.mr] = prev[x.tm];
-        // cube[x.bl] = prev[x.br], cube[x.bm] = prev[x.mr], cube[x.br] = prev[x.tr];
+        // current (front) face
+        cube[x.tl] = prev[x.tr], cube[x.tm] = prev[x.mr], cube[x.tr] = prev[x.br];
+        cube[x.ml] = prev[x.tm], cube[x.mm] = prev[x.mm], cube[x.mr] = prev[x.bm];
+        cube[x.bl] = prev[x.tl], cube[x.bm] = prev[x.ml], cube[x.br] = prev[x.bl];
         
-        // // left face
-        // cube[x.ll] = prev[x.dl], cube[x.lm] = prev[x.dm], cube[x.lr] = prev[x.dr];
+        // left face
+        cube[x.ll] = prev[x.ul], cube[x.lm] = prev[x.um], cube[x.lr] = prev[x.ur];
         
-        // // up face
-        // cube[x.ul] = prev[x.ll], cube[x.um] = prev[x.lm], cube[x.ur] = prev[x.lr];
+        // up face
+        cube[x.ul] = prev[x.rl], cube[x.um] = prev[x.rm], cube[x.ur] = prev[x.rr];
 
-        // // right face
-        // cube[x.rl] = prev[x.ul], cube[x.rm] = prev[x.um], cube[x.rr] = prev[x.ur];
-        // // down face
-        // cube[x.dl] = prev[x.rl], cube[x.dm] = prev[x.rm], cube[x.dr] = prev[x.rr];
+        // right face
+        cube[x.rl] = prev[x.dl], cube[x.rm] = prev[x.dm], cube[x.rr] = prev[x.dr];
+        // down face
+        cube[x.dl] = prev[x.ll], cube[x.dm] = prev[x.lm], cube[x.dr] = prev[x.lr];
     }
 
     // up face counterclockwise
@@ -218,14 +214,18 @@ struct RubiksCube {
     // ========================================================================
     // utility functions
     // ========================================================================
+
+    bool operator ==(const RubiksCube c1) {
+        return c1.cube == cube;
+    }
     
     void print() {
-        int n = DIM * DIM * N_FACES; // n = 54
+        int n = 54;
         for (int i = 0; i < n; i++) {
             cout << cube[i] << " ";
-            if (i % (DIM * DIM) == (DIM * DIM - 1)) cout << endl;
+            if (i % 9 == 8) cout << endl;
         }
-        for (int i = 0; i < DIM * DIM; i++) cout << "- ";
+        for (int i = 0; i < 9; i++) cout << "- ";
         cout << endl;
     }
 
@@ -241,7 +241,7 @@ struct RubiksCube {
         //          15 16 17
         
         auto printSpaces = []() {
-            for (int i = 0; i < DIM; i++) cout << "   ";
+            for (int i = 0; i < 3; i++) cout << "   ";
         };
 
         auto printRow = [this](int i, int j, int k, bool endL) {
@@ -266,13 +266,94 @@ struct RubiksCube {
     }
 };
 
+// tests
+
+void basicTest() {
+    RubiksCube cube, id;
+    cube.F(); cube.F_();
+    assert(id == cube);
+    cube.B(); cube.B_();
+    assert(id == cube);
+    cube.U(); cube.U_();
+    assert(id == cube);
+    cube.D(); cube.D_();
+    assert(id == cube);
+    cube.L(); cube.L_();
+    assert(id == cube);
+    cube.R(); cube.R_();
+    assert(id == cube);
+}
+
+void seq1() {
+    RubiksCube cube, id;
+    for (int i = 0; i < 6; i++) {
+        cube.R();
+        cube.U_();
+        cube.R_();
+        cube.U();
+    }
+    assert(id == cube);
+}
+
+void seq2() {
+    RubiksCube cube, id;
+    for (int i = 0; i < 63; i++) {
+        cube.R();
+        cube.U_();
+    }
+    assert(id == cube);
+}
+
+void seq3() {
+    RubiksCube cube, id;
+    for (int i = 0; i < 4; i++) {
+        cube.R(); cube.R();
+        cube.L_(); cube.L_();
+        if (i % 2 == 0) {
+            cube.D(); cube.D();
+        }
+        else {
+            cube.U(); cube.U();
+        }
+    }
+    assert(id == cube);
+}
+
+void seq4() {
+    RubiksCube cube, id;
+    for (int i = 0; i < 4; i++) {
+        if (i % 2 == 0) {
+            cube.R(); cube.R();
+            cube.L_(); cube.L_();
+        }
+        else {
+            cube.F(); cube.F();
+            cube.B_(); cube.B_();
+        }
+    }
+    assert(id == cube);
+}
+
+void seq5() {
+    RubiksCube cube, id;
+    for (int i = 0; i < 12; i++) {
+        if (i % 2 == 0) {
+            cube.R(); cube.L_();
+        }
+        else {
+            cube.F(); cube.B_();
+        }
+    }
+    assert(id == cube);
+}
+
 int main() {
-    RubiksCube cube;
-    cube.prettyPrint();
-    cube.B();
-    cube.L();
-    cube.U();
-    cube.L();
-    cube.F();
-    cube.prettyPrint();
+    basicTest();
+    seq1();
+    seq2();
+    seq3();
+    seq4();
+    seq5();
+
+    cout << "all tests passed" << endl;
 }
