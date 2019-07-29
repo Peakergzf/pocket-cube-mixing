@@ -1,5 +1,8 @@
 #include <bits/stdc++.h>
+#include <chrono>
+
 using namespace std;
+using namespace std::chrono; 
 
 enum Color {WT, YL, GN, BL, OR, RD};
 string ColorName = "WYGBOR";
@@ -112,15 +115,12 @@ struct RubiksCube {
         
         // current (front) face
         cube[x.tl] = prev[x.bl], cube[x.tm] = prev[x.ml], cube[x.tr] = prev[x.tl];
-        cube[x.ml] = prev[x.bm], cube[x.mm] = prev[x.mm], cube[x.mr] = prev[x.tm];
+        cube[x.ml] = prev[x.bm],                          cube[x.mr] = prev[x.tm];
         cube[x.bl] = prev[x.br], cube[x.bm] = prev[x.mr], cube[x.br] = prev[x.tr];
-        
         // left face
         cube[x.ll] = prev[x.dl], cube[x.lm] = prev[x.dm], cube[x.lr] = prev[x.dr];
-        
         // up face
         cube[x.ul] = prev[x.ll], cube[x.um] = prev[x.lm], cube[x.ur] = prev[x.lr];
-
         // right face
         cube[x.rl] = prev[x.ul], cube[x.rm] = prev[x.um], cube[x.rr] = prev[x.ur];
         // down face
@@ -158,15 +158,12 @@ struct RubiksCube {
         
         // current (front) face
         cube[x.tl] = prev[x.tr], cube[x.tm] = prev[x.mr], cube[x.tr] = prev[x.br];
-        cube[x.ml] = prev[x.tm], cube[x.mm] = prev[x.mm], cube[x.mr] = prev[x.bm];
+        cube[x.ml] = prev[x.tm],                          cube[x.mr] = prev[x.bm];
         cube[x.bl] = prev[x.tl], cube[x.bm] = prev[x.ml], cube[x.br] = prev[x.bl];
-        
         // left face
         cube[x.ll] = prev[x.ul], cube[x.lm] = prev[x.um], cube[x.lr] = prev[x.ur];
-        
         // up face
         cube[x.ul] = prev[x.rl], cube[x.um] = prev[x.rm], cube[x.ur] = prev[x.rr];
-
         // right face
         cube[x.rl] = prev[x.dl], cube[x.rm] = prev[x.dm], cube[x.rr] = prev[x.dr];
         // down face
@@ -348,12 +345,21 @@ void seq5() {
 }
 
 int main() {
-    basicTest();
-    seq1();
-    seq2();
-    seq3();
-    seq4();
-    seq5();
+    auto start = high_resolution_clock::now();
 
-    cout << "all tests passed" << endl;
+    for (int i = 0; i < 2000; i++) {
+        basicTest(); // 12 moves
+        seq1(); // 24 moves
+        seq2(); // 126 moves
+        seq3(); // 24 moves
+        seq4(); // 16 moves
+        seq5(); // 24 moves
+    }
+
+    auto finish = high_resolution_clock::now();
+    
+    duration<double> elapsed = finish - start;
+
+    // 226 * 2000 = 452,000 moves (assertions not included) in 0.17-0.25s
+    cout << elapsed.count() << "s" << endl;
 }
