@@ -165,7 +165,18 @@ namespace RubiksCube2x2 {
 
     void seq1();
 
-    void seq2();
+    // same seq applied to different faces
+    void seq2U();
+
+    void seq2D();
+
+    void seq2L();
+
+    void seq2R();
+
+    void seq2F();
+
+    void seq2B();
 
 }
 
