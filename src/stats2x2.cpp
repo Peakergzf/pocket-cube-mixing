@@ -7,6 +7,7 @@ using namespace std::chrono;
 enum Color {WT, YL, GN, BL, OR, RD};
 string ColorName = "WYGBOR";
 
+// 3674160 (x24 without equivalence of spatial rotations) configurations
 int m = 3674160 * 24;
 
 typedef vector<Color> vc;
@@ -313,6 +314,8 @@ struct Cube2x2 {
         };
 };
 
+// K_1 := # elements of the sample space of size m, 
+//        that have been observed exactly once in a random sample of size N
 int K1(int N, int t) {
     map<vc, int> freq;
 
@@ -322,33 +325,32 @@ int K1(int N, int t) {
         freq[state]++;
     }
 
-    int ans = 0;
+    int cnt = 0;
     for (const auto &x : freq) {
         if (x.second == 1) {
-            ans++;
+            cnt++;
         }
     }
 
-    return ans;
+    return cnt;
 }
 
-double EK(int N) {
+// E_U(K_1)
+double EUK1(int N) {
     return N * pow((m-1)/double(m), N-1); 
 } 
-
-
 
 
 int main() {
     auto start = high_resolution_clock::now();
 
-    
     int N = 1e6;
-    double ek = EK(N);
+    double euk1 = EUK1(N);
     for (int t = 1; t <= 30; t++) {
-        double ans = ek - K1(N, t);
+        // test statistic T := E_U(K_1) - K_1
+        double t = euk1 - K1(N, t);
         cout << t << " ";
-        cout << fixed << setprecision(5) << ans << endl;
+        cout << fixed << setprecision(4) << t << endl;
     }
 
     auto finish = high_resolution_clock::now();
