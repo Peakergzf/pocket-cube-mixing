@@ -9,9 +9,15 @@ void test2x2() {
     for (int i = 0; i < 5000; i++) {
         RubiksCube2x2::basicTest();  // 12 moves
         RubiksCube2x2::seq1();  // 24 moves
-        RubiksCube2x2::seq2();  // 18 moves
+        // 18 x 6 = 108 moves
+        RubiksCube2x2::seq2U();  
+        RubiksCube2x2::seq2D();
+        RubiksCube2x2::seq2F();
+        RubiksCube2x2::seq2B();
+        RubiksCube2x2::seq2L();
+        RubiksCube2x2::seq2R();
     }
-    // 42 * 5000 = 210,000 moves (assertions not included) in 0.08-0.10s
+    // 144 * 5000 = 720,000 moves (assertions not included) in 0.22-0.24s
 }
 
 void test3x3() {
