@@ -1,5 +1,6 @@
 #include <bits/stdc++.h>
 #include <chrono>
+#include <assert.h>
 
 using namespace std;
 using namespace std::chrono;
@@ -338,19 +339,19 @@ int K1(int N, int t) {
 // E_U(K_1)
 double EUK1(int N) {
     return N * pow((m-1)/double(m), N-1); 
-} 
+}
 
 
-int main() {
+void compute_stats() {
     auto start = high_resolution_clock::now();
 
     int N = 1e6;
     double euk1 = EUK1(N);
     for (int t = 1; t <= 30; t++) {
         // test statistic T := E_U(K_1) - K_1
-        double t = euk1 - K1(N, t);
+        double T = euk1 - K1(N, t);
         cout << t << " ";
-        cout << fixed << setprecision(4) << t << endl;
+        cout << fixed << setprecision(4) << T << endl;
     }
 
     auto finish = high_resolution_clock::now();
@@ -358,4 +359,23 @@ int main() {
     duration<double> elapsed = finish - start;
 
     cout << elapsed.count() << "s" << endl;
+}
+
+// existence of odd order move
+void odd_order() {
+    Cube2x2 cube, id;
+    for (int i = 0; i < 7; i++) {
+        cube.R();
+        cube.U_();
+        cube.F2();
+    }
+    // cube.print();
+    assert(id == cube);
+    cout << "ord(R U' F2) == 7" << endl;
+}
+
+
+int main() {
+    odd_order();
+    compute_stats();
 }
