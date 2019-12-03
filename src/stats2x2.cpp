@@ -363,6 +363,8 @@ void compute_stats() {
 
 // existence of odd order move
 void odd_order() {
+    // https://mzrg.com/rubik/orders.shtml
+
     Cube2x2 cube, id;
     for (int i = 0; i < 7; i++) {
         cube.R();
@@ -372,10 +374,26 @@ void odd_order() {
     // cube.print();
     assert(id == cube);
     cout << "ord(R U' F2) == 7" << endl;
+
+    for (int i = 0; i < 21; i++) {
+        cube.R();
+        cube.L2();
+        cube.U();
+    }
+    assert(id == cube);
+    cout << "ord(R L2 U ) == 21" << endl;
+
+    for (int i = 0; i < 45; i++) {
+        cube.R();
+        cube.L2();
+        cube.U_();
+    }
+    assert(id == cube);
+    cout << "ord(R L2 U') == 45" << endl;
 }
 
 
 int main() {
     odd_order();
-    compute_stats();
+    // compute_stats();
 }
