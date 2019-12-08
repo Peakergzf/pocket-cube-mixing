@@ -30,13 +30,18 @@ int main() {
     elapsed = t1 - t0;
     cout << elapsed.count() << "s" << endl;
 
-    for (int i = 0; i < 5; i++) {
+    SparseMatrix<int> prod(mat);
+    
+    for (int i = 2; i < 30; i++) {
         t0 = high_resolution_clock::now();
-        mat = (mat * mat).pruned();
+        prod = (prod * mat).pruned();
 
         t1 = high_resolution_clock::now();
         elapsed = t1 - t0;
-        cout << elapsed.count() << "s" << endl;
+
+        const char *file_name = (to_string(i) + ".txt").c_str();
+        freopen(file_name, "w", stdout);
+        cout << i << "-th power: " << elapsed.count() << "s" << endl;
     }
 }
 
