@@ -62,6 +62,49 @@ vi un_rank_perm(int r, int n) {
     return p;
 }
 
+struct Cube {
+    // initialised to the solved state
+    vi p = {0, 1, 2, 3, 4, 5, 6};
+    vi q = {0, 0, 0, 0, 0, 0, 0};
+};
+
+int base_3_to_10(vi q) {
+    vi v(q.begin(), q.end() - 1);
+    reverse(v.begin(), v.end());
+    int dec = 0;
+    for (int i = 0; i < 6; i++) {
+        dec += v[i] * pow(3, i);
+    }
+    return dec;
+}
+
+int pack_cube(Cube cube) {
+    int x = rank_perm(cube.p);
+    int y = base_3_to_10(cube.q);
+    return x * pow(3, 6) + y;
+}
+
+vi base_10_to_3(int dec) {
+    vi q(7);
+    int idx = 1;
+    while (dec) {
+        q[idx++] = dec % 3;
+        dec /= 3;
+    }
+    reverse(q.begin(), q.end());
+    int sum = accumulate(q.begin(), q.end(), 0);
+    q[6] = (3-sum % 3)%3;
+    return q;
+}
+
+Cube unpack_cube(int i) {
+    int x = i / (int)pow(3, 6), y = i % (int)pow(3, 6);
+    Cube cube;
+    cube.p = un_rank_perm(x, 7);
+    cube.q = base_10_to_3(y);
+    return cube;
+}
+
 void test_perm_rank() {
     for (int n = 0; n < 9; n++) {
         for (int r = 0; r < factorial(n); r++) {
@@ -76,8 +119,15 @@ void test_perm_rank() {
     }
 }
 
+void test_pack_cube() {
+    for (int i = 0; i < factorial(7) * pow(3, 6); i++) {
+        assert(pack_cube(unpack_cube(i)) == i);
+    }
+}
+
 
 int main() {
     test_perm_rank();
+    test_pack_cube();
 }
 
