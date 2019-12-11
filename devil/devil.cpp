@@ -1,10 +1,12 @@
 #include <bits/stdc++.h>
+#include <chrono>
 #include <assert.h>
 
 using namespace std;
 using namespace std::chrono;
 
 typedef vector<int> vi;
+typedef vector<vi> vvi;
 
 int factorial(int n) {
     return (n == 1 || n == 0) ? 1 : n * factorial(n - 1);
@@ -105,6 +107,71 @@ Cube unpack_cube(int i) {
     return cube;
 }
 
+vi compose(vi sgm, vi tau) {
+    int n = sgm.size();
+    vi comp(n);
+    for (int i = 0; i < n; i++) {
+        comp[i] = sgm[tau[i]];
+    }
+    return comp;
+}
+
+// TODO
+Cube X = {  .p={4, 1, 0, 3, 6, 5, 2}, .q = {1, 0, 1, 0, 2, 0, 2}};
+Cube X_ = { .p={2, 1, 6, 3, 0, 5, 4}, .q={2, 0, 1, 0, 2, 0, 1} };
+Cube Y =  { .p={0, 2, 6, 3, 4, 1, 5}, .q={0, 1, 2, 0, 0, 1, 2} };
+Cube Y_ = { .p={0, 5, 1, 3, 4, 6, 2}, .q={0, 2, 2, 0, 0, 1, 1} };
+Cube Z =  { .p={0, 1, 2, 5, 3, 6, 4}, .q={0, 0, 0, 1, 1, 2, 2} };
+Cube Z_ = { .p={0, 1, 2, 4, 6, 3, 5}, .q={0, 0, 0, 2, 1, 2, 1} };
+vector<Cube> moves = {X, X_, Y, Y_, Z, Z_};
+
+Cube make_move(Cube before, Cube move) {
+    Cube after;
+    after.p = compose(before.p, move.p);
+    vi x = compose(before.q, move.p);
+    for (int i = 0; i < 7; i++) {
+        after.q[i] = (x[i] + move.q[i]) % 3;
+    }
+    return after;
+}
+
+vvi construct_graph() {
+    int n = factorial(7) * pow(3, 6);
+    vvi G(n);
+    for (int v = 0; v < n; v++) {
+        Cube cube = unpack_cube(v);
+        for (int j = 0; j < 6; j++) {
+            Cube move = moves[j];
+            int u = pack_cube(make_move(cube, move));
+            G[v].push_back(u);
+            // TODO G[u].push_back(v);
+        }
+    }
+    return G;
+}
+
+bool is_bipartite(vvi G, int s) {
+    vi color(G.size(), -1);
+    color[s] = 1;
+    queue<int> q;
+    q.push(s);
+    while (!q.empty()) {
+        int u = q.front();
+        q.pop();
+        for (int w: G[u]) {
+            if (color[w] == -1) {
+                color[w] = 1 - color[u];
+                q.push(w);
+            }
+            else if (color[w] == color[u]) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+
 void test_perm_rank() {
     for (int n = 0; n < 9; n++) {
         for (int r = 0; r < factorial(n); r++) {
@@ -127,7 +194,19 @@ void test_pack_cube() {
 
 
 int main() {
-    test_perm_rank();
-    test_pack_cube();
-}
+    // test_perm_rank();
+    // test_pack_cube();
 
+    auto t0 = high_resolution_clock::now();
+
+    vvi G = construct_graph();
+    Cube solved;
+    auto t1 = high_resolution_clock::now();
+    duration<double> elapsed = t1 - t0;
+    cout << elapsed.count() << "s" << endl;
+
+    assert(is_bipartite(G, pack_cube(solved)));
+    auto t2 = high_resolution_clock::now();
+    elapsed = t2 - t1;
+    cout << elapsed.count() << "s" << endl;
+}
