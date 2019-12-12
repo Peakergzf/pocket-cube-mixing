@@ -247,7 +247,7 @@ SpMt matrix_power(int T, SpMt mat) {
     chrono::duration<double> elapsed;
 
     // https://eigen.tuxfamily.org/dox/group__TutorialSparse.html#title6
-    SparseMatrix<int> prod(mat);
+    SpMt prod(mat);
     
     for (int t = 2; t < T; t++) {
         t0 = chrono::high_resolution_clock::now();
@@ -255,10 +255,7 @@ SpMt matrix_power(int T, SpMt mat) {
 
         t1 = chrono::high_resolution_clock::now();
         elapsed = t1 - t0;
-
-        const char *file_name = (to_string(t) + ".txt").c_str();
-        ofstream fout (file_name);
-        fout << t << "-th power: " << elapsed.count() << "s" << endl;
+    
         cout << t << "-th power: " << elapsed.count() << "s" << endl;
     }
     return prod;
