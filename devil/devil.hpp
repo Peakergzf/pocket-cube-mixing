@@ -1,9 +1,12 @@
 #include <bits/stdc++.h>
+#include <eigen/Eigen/Sparse>
 
 using namespace std;
+using namespace Eigen;
 
 typedef vector<int> vi;
 typedef vector<vi> vvi;
+typedef SparseMatrix<int> SpMt;
 
 // ========================================================================
 // struct and function declaration
@@ -55,3 +58,5 @@ Cube SOLVED = { {0, 1, 2, 3, 4, 5, 6}, {0, 0, 0, 0, 0, 0, 0} };
 const int P = factorial(7);
 const int Q = pow(3, 6);
 const int N = P * Q;
+
+const int M = 6;

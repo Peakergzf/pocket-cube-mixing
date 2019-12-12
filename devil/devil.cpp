@@ -101,7 +101,7 @@ int factorial(int n) {
 vi argsort(vi v) {
     // returns the indices that would sort `v`
     // e.g. when v = [8, 7, 5, 6], idx = [2, 3, 1, 0]
-    // (https://stackoverflow.com/a/12399290)
+    // https://stackoverflow.com/a/12399290
 
     vi idx(v.size());
     // initialised to [0, 1, ..., v.size()-1]
@@ -222,14 +222,68 @@ void state_graph_timing() {
 // matrix
 // ========================================================================
 
+SpMt construct_matrix() {
+    // https://eigen.tuxfamily.org/dox/group__TutorialSparse.html#title3
+
+    // column major NxN sparse matrix
+    SpMt mat(N, N);
+    // reserve space for M non-zero entries per column
+    mat.reserve(VectorXi::Constant(N, M));
+
+    for (int v = 0; v < N; v++) {
+        Cube cube = decode_cube(v);
+        for (Cube move: MOVES) {
+            int u = encode_cube(apply_move(cube, move));
+            mat.insert(v, u) = 1;
+        }
+    }
+    mat.makeCompressed();
+    return mat;
+}
+
+SpMt matrix_power(int T, SpMt mat) {
+    auto t0 = chrono::high_resolution_clock::now();
+    auto t1 = chrono::high_resolution_clock::now();
+    chrono::duration<double> elapsed;
+
+    // https://eigen.tuxfamily.org/dox/group__TutorialSparse.html#title6
+    SparseMatrix<int> prod(mat);
+    
+    for (int t = 2; t < T; t++) {
+        t0 = chrono::high_resolution_clock::now();
+        prod = (prod * mat).pruned();
+
+        t1 = chrono::high_resolution_clock::now();
+        elapsed = t1 - t0;
+
+        const char *file_name = (to_string(t) + ".txt").c_str();
+        ofstream fout (file_name);
+        fout << t << "-th power: " << elapsed.count() << "s" << endl;
+        cout << t << "-th power: " << elapsed.count() << "s" << endl;
+    }
+    return prod;
+}
+
+void matrix_timing() {
+    auto t0 = chrono::high_resolution_clock::now();
+
+    SpMt mat = construct_matrix();
+
+    auto t1 = chrono::high_resolution_clock::now();
+    chrono::duration<double> elapsed = t1 - t0;
+    cout << "matrix constructed in " << elapsed.count() << "s" << endl;
+
+    matrix_power(20, mat);
+}
 
 // ========================================================================
 // main program
 // ========================================================================
 
 int main() {
-    test_encode_p();
-    test_encode_q();
-    test_encode_cube();
-    state_graph_timing();
+    // test_encode_p();
+    // test_encode_q();
+    // test_encode_cube();
+    // state_graph_timing();
+    matrix_timing();
 }
