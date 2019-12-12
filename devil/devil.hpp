@@ -1,9 +1,6 @@
 #include <bits/stdc++.h>
-#include <chrono>
-#include <assert.h>
 
 using namespace std;
-using namespace std::chrono;
 
 typedef vector<int> vi;
 typedef vector<vi> vvi;
@@ -13,8 +10,8 @@ typedef vector<vi> vvi;
 // ========================================================================
 
 struct Cube {
-    vi p;
-    vi q;
+    vi p; // an element of S_7
+    vi q; // an element of Z_3^7
 };
 
 int encode_p(vi p);

@@ -1,10 +1,13 @@
 #include "devil.hpp"
+#include <chrono>
+#include <assert.h>
 
 // ========================================================================
-// function implementations
+// cube state representation
 // ========================================================================
 
 int encode_p(vi p) {
+    // map from S7 to [0, 7! - 1]
     vi q = argsort(p);
     int r = 0, n = p.size();
     for (int k = n - 1; k > 0; k--) {
@@ -17,6 +20,7 @@ int encode_p(vi p) {
 }
 
 vi decode_p(int x, int n) {
+    // map from [0, 7! - 1] to S7
     vi p(n); 
     iota(p.begin(), p.end(), 0);
     for (int k = n - 1; k > 0; k--) {
@@ -29,6 +33,9 @@ vi decode_p(int x, int n) {
 }
 
 int encode_q(vi q) {
+    // convert `q` from base 3 to decimal
+
+    // the orientations of any 6 cubies determine the remaining orientation
     vi v(q.begin(), q.end() - 1);
     reverse(v.begin(), v.end());
     int dec = 0;
@@ -39,15 +46,19 @@ int encode_q(vi q) {
 }
 
 vi decode_q(int y) {
+    // convert `y` from decimal to base 3
+    // 0 <= y <= 3^6 - 1
+
     vi q(7);
-    int idx = 1;
+    int idx = 1; // (before reverse q) q[0] is not encoded in y
     while (y) {
         q[idx++] = y % 3;
         y /= 3;
     }
     reverse(q.begin(), q.end());
     int sum = accumulate(q.begin(), q.end(), 0);
-    q[6] = (3-sum % 3)%3;
+    // FTC states: sum(q) = 0 mod 3, which can be used to recover the 7th element of q
+    q[6] = (3 - sum % 3) % 3;
     return q;
 }
 
@@ -58,37 +69,37 @@ int encode_cube(Cube cube) {
 }
 
 Cube decode_cube(int i) {
-    int x = i / (int)Q, y = i % (int)Q;
+    // 0 <= i <= (7! * 3^6) - 1
+    int x = i / Q;
+    int y = i % Q;
     Cube cube = { decode_p(x, 7), decode_q(y) };
     return cube;
 }
 
-vi compose(vi sgm, vi tau) {
-    int n = sgm.size();
-    vi comp(n);
-    for (int i = 0; i < n; i++) {
-        comp[i] = sgm[tau[i]];
-    }
-    return comp;
-};
+Cube apply_move(Cube before, Cube move) {
+    // apply one of the moves `move` to cube state `before` 
+    // and get cube state `after`
 
-Cube make_move(Cube before, Cube move) {
     vi p(7), q(7);
     p = compose(before.p, move.p);
-    vi x = compose(before.q, move.p);
+    vi _q = compose(before.q, move.p);
     for (int i = 0; i < 7; i++) {
-        q[i] = (x[i] + move.q[i]) % 3;
+        q[i] = (_q[i] + move.q[i]) % 3;
     }
     Cube after = {p, q};
     return after;
 }
+
+// ------------------------------------------------------------------------
+// helper functions
+// ------------------------------------------------------------------------
 
 int factorial(int n) {
     return (n == 1 || n == 0) ? 1 : n * factorial(n - 1);
 }
 
 vi argsort(vi v) {
-    // returns the indices that would sort v
+    // returns the indices that would sort `v`
     // e.g. when v = [8, 7, 5, 6], idx = [2, 3, 1, 0]
     // (https://stackoverflow.com/a/12399290)
 
@@ -105,46 +116,22 @@ vi argsort(vi v) {
     return idx;
 }
 
-vvi construct_graph() {
-    vvi G(N);
-    for (int v = 0; v < N; v++) {
-        Cube cube = decode_cube(v);
-        for (Cube move: MOVES) {
-            int u = encode_cube(make_move(cube, move));
-            G[v].push_back(u);
-        }
+vi compose(vi sgm, vi tau) {
+    // compose two permutations `sgm` and `tau`
+    // e.g. when sgm = {2, 0, 1}, tau = {1, 0, 2}, comp(sgm, tau) = {0, 2, 1}
+    // since {0, 1, 2} --tau--> {1, 0, 2} --sgm--> {0, 2, 1}
+
+    int n = sgm.size();
+    vi comp(n);
+    for (int i = 0; i < n; i++) {
+        comp[i] = sgm[tau[i]];
     }
-    return G;
-}
+    return comp;
+};
 
-bool is_bipartite(vvi G, int s) {
-    const int UNCOLORED = -1;
-    // switch between the two colors 1 and 0
-    auto _switch = [](int col) { return 1 - col; };
-
-    vi color(G.size(), UNCOLORED);
-    color[s] = 1; // color the source 1
-    queue<int> q;
-    q.push(s);
-    while (!q.empty()) {
-        int u = q.front();
-        q.pop();
-        for (int w: G[u]) {
-            if (color[w] == UNCOLORED) {
-                color[w] = _switch(color[u]);
-                q.push(w);
-            }
-            else if (color[w] == color[u]) {
-                return false;
-            }
-        }
-    }
-    return true;
-}
-
-// ========================================================================
+// ------------------------------------------------------------------------
 // testing
-// ========================================================================
+// ------------------------------------------------------------------------
 
 void test_encode_p() {
     for (int n = 0; n < 9; n++) {
@@ -172,21 +159,69 @@ void test_encode_cube() {
     }
 }
 
+// ========================================================================
+// graph
+// ========================================================================
+
+vvi construct_graph() {
+    vvi G(N);
+    for (int v = 0; v < N; v++) { // for each vertex v (cube state)
+        Cube cube = decode_cube(v);
+        for (Cube move: MOVES) { // for each neighbour of v (reached by a move)
+            int u = encode_cube(apply_move(cube, move));
+            G[v].push_back(u);
+            // G[u].push_back(v);
+        }
+    }
+    return G;
+}
+
+bool is_bipartite(vvi G, int s) {
+    // bfs traverse and (1, 0)-color graph `G` from source vertex `s`
+
+    const int UNCOLORED = -1;
+    vi color(G.size(), UNCOLORED); // the color of each vertex
+    color[s] = 1; // color s with color 1
+    queue<int> q; q.push(s);
+
+    while (!q.empty()) {
+        int u = q.front(); q.pop();
+        for (int w: G[u]) { // for each neighbour w of vertex u
+            if (color[w] == UNCOLORED) { // if w is not colored
+                color[w] = 1 - color[u]; // switch color between 0 and 1
+                q.push(w);
+            }
+            // if w and u are adjacent and have the same color
+            else if (color[w] == color[u]) {
+                return false; // the graph is not bipartite
+            }
+        }
+    }
+    return true;
+}
+
 void state_graph_timing() {
-    auto t0 = high_resolution_clock::now();
+    // time graph construction and bfs traversal
+
+    auto t0 = chrono::high_resolution_clock::now();
 
     vvi G = construct_graph();
 
-    auto t1 = high_resolution_clock::now();
-    duration<double> elapsed = t1 - t0;
-    cout << elapsed.count() << "s" << endl;
+    auto t1 = chrono::high_resolution_clock::now();
+    chrono::duration<double> elapsed = t1 - t0;
+    cout << "graph constructed in " << elapsed.count() << "s" << endl;
 
     assert(is_bipartite(G, encode_cube(SOLVED)));
 
-    auto t2 = high_resolution_clock::now();
+    auto t2 = chrono::high_resolution_clock::now();
     elapsed = t2 - t1;
-    cout << elapsed.count() << "s" << endl;
+    cout << "bfs traversal in " << elapsed.count() << "s" << endl;
 }
+
+// ========================================================================
+// matrix
+// ========================================================================
+
 
 // ========================================================================
 // main program
@@ -196,6 +231,5 @@ int main() {
     test_encode_p();
     test_encode_q();
     test_encode_cube();
-
-
+    state_graph_timing();
 }
