@@ -65,9 +65,8 @@ vi un_rank_perm(int r, int n) {
 }
 
 struct Cube {
-    // initialised to the solved state
-    vi p = {0, 1, 2, 3, 4, 5, 6};
-    vi q = {0, 0, 0, 0, 0, 0, 0};
+    vi p;
+    vi q;
 };
 
 int base_3_to_10(vi q) {
@@ -107,31 +106,31 @@ Cube unpack_cube(int i) {
     return cube;
 }
 
-vi compose(vi sgm, vi tau) {
-    int n = sgm.size();
-    vi comp(n);
-    for (int i = 0; i < n; i++) {
-        comp[i] = sgm[tau[i]];
-    }
-    return comp;
-}
-
-// TODO
-Cube X = {  .p={4, 1, 0, 3, 6, 5, 2}, .q = {1, 0, 1, 0, 2, 0, 2}};
-Cube X_ = { .p={2, 1, 6, 3, 0, 5, 4}, .q={2, 0, 1, 0, 2, 0, 1} };
-Cube Y =  { .p={0, 2, 6, 3, 4, 1, 5}, .q={0, 1, 2, 0, 0, 1, 2} };
-Cube Y_ = { .p={0, 5, 1, 3, 4, 6, 2}, .q={0, 2, 2, 0, 0, 1, 1} };
-Cube Z =  { .p={0, 1, 2, 5, 3, 6, 4}, .q={0, 0, 0, 1, 1, 2, 2} };
-Cube Z_ = { .p={0, 1, 2, 4, 6, 3, 5}, .q={0, 0, 0, 2, 1, 2, 1} };
+Cube X =  { {4, 1, 0, 3, 6, 5, 2}, {1, 0, 1, 0, 2, 0, 2} };
+Cube X_ = { {2, 1, 6, 3, 0, 5, 4}, {2, 0, 1, 0, 2, 0, 1} };
+Cube Y =  { {0, 2, 6, 3, 4, 1, 5}, {0, 1, 2, 0, 0, 1, 2} };
+Cube Y_ = { {0, 5, 1, 3, 4, 6, 2}, {0, 2, 2, 0, 0, 1, 1} };
+Cube Z =  { {0, 1, 2, 5, 3, 6, 4}, {0, 0, 0, 1, 1, 2, 2} };
+Cube Z_ = { {0, 1, 2, 4, 6, 3, 5}, {0, 0, 0, 2, 1, 2, 1} };
 vector<Cube> moves = {X, X_, Y, Y_, Z, Z_};
 
 Cube make_move(Cube before, Cube move) {
-    Cube after;
-    after.p = compose(before.p, move.p);
+    auto compose = [](vi sgm, vi tau) {
+        int n = sgm.size();
+        vi comp(n);
+        for (int i = 0; i < n; i++) {
+            comp[i] = sgm[tau[i]];
+        }
+        return comp;
+    };
+
+    vi p(7), q(7);
+    p = compose(before.p, move.p);
     vi x = compose(before.q, move.p);
     for (int i = 0; i < 7; i++) {
-        after.q[i] = (x[i] + move.q[i]) % 3;
+        q[i] = (x[i] + move.q[i]) % 3;
     }
+    Cube after = {p, q};
     return after;
 }
 
@@ -140,27 +139,28 @@ vvi construct_graph() {
     vvi G(n);
     for (int v = 0; v < n; v++) {
         Cube cube = unpack_cube(v);
-        for (int j = 0; j < 6; j++) {
-            Cube move = moves[j];
+        for (Cube move: moves) {
             int u = pack_cube(make_move(cube, move));
             G[v].push_back(u);
-            // TODO G[u].push_back(v);
         }
     }
     return G;
 }
 
 bool is_bipartite(vvi G, int s) {
-    vi color(G.size(), -1);
-    color[s] = 1;
+    const int RED = 1, BLUE = 0, UNCOLORED = -1;
+    auto _switch = [](int col) { return 1 - col; };
+
+    vi color(G.size(), UNCOLORED);
+    color[s] = RED;
     queue<int> q;
     q.push(s);
     while (!q.empty()) {
         int u = q.front();
         q.pop();
         for (int w: G[u]) {
-            if (color[w] == -1) {
-                color[w] = 1 - color[u];
+            if (color[w] == UNCOLORED) {
+                color[w] = _switch(color[u]);
                 q.push(w);
             }
             else if (color[w] == color[u]) {
@@ -200,12 +200,14 @@ int main() {
     auto t0 = high_resolution_clock::now();
 
     vvi G = construct_graph();
-    Cube solved;
+
     auto t1 = high_resolution_clock::now();
     duration<double> elapsed = t1 - t0;
     cout << elapsed.count() << "s" << endl;
 
+    Cube solved = { {0, 1, 2, 3, 4, 5, 6}, {0, 0, 0, 0, 0, 0, 0} };
     assert(is_bipartite(G, pack_cube(solved)));
+
     auto t2 = high_resolution_clock::now();
     elapsed = t2 - t1;
     cout << elapsed.count() << "s" << endl;
