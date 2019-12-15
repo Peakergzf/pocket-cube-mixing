@@ -133,7 +133,8 @@ vi compose(vi sgm, vi tau) {
 // testing
 // ------------------------------------------------------------------------
 
-void test_encode_p() {
+void cube_encoding_test() {
+    // p encoding test
     for (int n = 0; n < 9; n++) {
         for (int x = 0; x < factorial(n); x++) {
             assert(encode_p(decode_p(x, n)) == x);
@@ -145,18 +146,44 @@ void test_encode_p() {
             assert(decode_p(encode_p(perm), n) == perm);
         } while (next_permutation(perm.begin(), perm.end()));
     }
-}
 
-void test_encode_q() {
+    // q encoding test
     for (int y = 0; y < Q; y++) {
         assert(encode_q(decode_q(y)) == y);
     }
-}
 
-void test_encode_cube() {
+    // cube encoding test
     for (int i = 0; i < N; i++) {
         assert(encode_cube(decode_cube(i)) == i);
     }
+
+    cout << "cube encoding test passed." << endl;
+}
+
+void seq_test() {
+    Cube cube = SOLVED, id = SOLVED;
+    // seq1
+    for (int i = 0; i < 6; i++) {
+        cube = apply_move(cube, Y); // R
+        cube = apply_move(cube, Z_); // U_
+        cube = apply_move(cube, Y_); // R_
+        cube = apply_move(cube, Z); // U
+    }
+    assert(id == cube);
+    // seq2 on R, U_
+    for (int i = 0; i < 9; i++) {
+        cube = apply_move(cube, Y); // R
+        cube = apply_move(cube, Z_); // U_
+    }
+    assert(id == cube);
+    // seq2 on F, U_
+    for (int i = 0; i < 9; i++) {
+        cube = apply_move(cube, X); // F
+        cube = apply_move(cube, Z_); // U_
+    }
+    assert(id == cube);
+
+    cout << "move sequences test passed." << endl;
 }
 
 // ========================================================================
@@ -200,24 +227,6 @@ bool is_bipartite(vvi G, int s) {
     return true;
 }
 
-void state_graph_timing() {
-    // time graph construction and bfs traversal
-
-    auto t0 = chrono::high_resolution_clock::now();
-
-    vvi G = construct_graph();
-
-    auto t1 = chrono::high_resolution_clock::now();
-    chrono::duration<double> elapsed = t1 - t0;
-    cout << "graph constructed in " << elapsed.count() << "s" << endl;
-
-    assert(is_bipartite(G, encode_cube(SOLVED)));
-
-    auto t2 = chrono::high_resolution_clock::now();
-    elapsed = t2 - t1;
-    cout << "bfs traversal in " << elapsed.count() << "s" << endl;
-}
-
 // ========================================================================
 // matrix
 // ========================================================================
@@ -236,8 +245,16 @@ SpMt construct_matrix() {
             int u = encode_cube(apply_move(cube, move));
             mat.insert(v, u) = 1;
         }
+
+        // for (int j = 0; j < M; j++) {
+        //     int u = min(v, N - M) + j;
+        //     mat.insert(v, u) = 1;
+        // }
     }
     mat.makeCompressed();
+
+    assert(mat.nonZeros() == N * M);
+
     return mat;
 }
 
@@ -247,6 +264,7 @@ SpMt matrix_power(int T, SpMt mat) {
     chrono::duration<double> elapsed;
 
     // https://eigen.tuxfamily.org/dox/group__TutorialSparse.html#title6
+    // https://eigen.tuxfamily.org/dox/group__SparseQuickRefPage.html
     SpMt prod(mat);
     
     for (int t = 2; t < T; t++) {
@@ -255,22 +273,10 @@ SpMt matrix_power(int T, SpMt mat) {
 
         t1 = chrono::high_resolution_clock::now();
         elapsed = t1 - t0;
-    
-        cout << t << "-th power: " << elapsed.count() << "s" << endl;
+        cout << t << "-th power in " << elapsed.count() << "s (";
+        cout << prod.nonZeros() << " non-zeros)." << endl;
     }
     return prod;
-}
-
-void matrix_timing() {
-    auto t0 = chrono::high_resolution_clock::now();
-
-    SpMt mat = construct_matrix();
-
-    auto t1 = chrono::high_resolution_clock::now();
-    chrono::duration<double> elapsed = t1 - t0;
-    cout << "matrix constructed in " << elapsed.count() << "s" << endl;
-
-    matrix_power(20, mat);
 }
 
 // ========================================================================
@@ -278,9 +284,18 @@ void matrix_timing() {
 // ========================================================================
 
 int main() {
-    // test_encode_p();
-    // test_encode_q();
-    // test_encode_cube();
-    // state_graph_timing();
-    matrix_timing();
+    cube_encoding_test();
+    seq_test();
+
+    vvi G = construct_graph();
+    assert(is_bipartite(G, encode_cube(SOLVED)));
+    cout << "bipartite test passed." << endl;
+
+    auto t0 = chrono::high_resolution_clock::now();
+    SpMt mat = construct_matrix();
+    auto t1 = chrono::high_resolution_clock::now();
+    chrono::duration<double> elapsed = t1 - t0;
+    cout << "matrix constructed in " << elapsed.count() << "s." << endl;
+
+    matrix_power(20, mat);
 }
