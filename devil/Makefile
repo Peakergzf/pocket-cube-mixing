@@ -1,5 +1,5 @@
-devil: cube.cpp
-	g++ -std=c++11 -Wall -o sol cube.cpp
+cube: cube.cpp
+	g++ -std=c++11 -Wall -I ./eigen -o sol cube.cpp 
 
 run:
 	./sol

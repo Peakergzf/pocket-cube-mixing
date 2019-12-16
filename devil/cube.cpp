@@ -1,5 +1,6 @@
 #include <bits/stdc++.h>
-#include <eigen/Eigen/Sparse>
+// #include <eigen/Eigen/Sparse>
+#include <Eigen/Sparse>
 #include <chrono>
 #include <assert.h>
 
@@ -199,7 +200,7 @@ vi compose(vi sgm, vi tau) {
         comp[i] = sgm[tau[i]];
     }
     return comp;
-};
+}
 
 // ------------------------------------------------------------------------
 // testing
@@ -228,8 +229,6 @@ void cube_encoding_test() {
     for (int i = 0; i < N; i++) {
         assert(encode_cube(decode_cube(i)) == i);
     }
-
-    cout << "cube encoding test passed." << endl;
 }
 
 void seq_test() {
@@ -254,8 +253,6 @@ void seq_test() {
         cube = apply_move(cube, Z_); // U_
     }
     assert(id == cube);
-
-    cout << "move sequences test passed." << endl;
 }
 
 // ========================================================================
@@ -346,7 +343,7 @@ SpMt matrix_power(int T, SpMt mat) {
         t1 = chrono::high_resolution_clock::now();
         elapsed = t1 - t0;
         cout << t << "-th power in " << elapsed.count() << "s (";
-        cout << prod.nonZeros() << " non-zeros)." << endl;
+        cout << prod.nonZeros() << " non-zeros)" << endl;
     }
     return prod;
 }
@@ -356,18 +353,32 @@ SpMt matrix_power(int T, SpMt mat) {
 // ========================================================================
 
 int main() {
+    cout << "cube encoding testing ... ";
     cube_encoding_test();
+    cout << "passed" << endl;
+    
+    cout << "move sequence testing ...";
     seq_test();
-
-    vvi G = construct_graph();
-    assert(is_bipartite(G, encode_cube(SOLVED)));
-    cout << "bipartite test passed." << endl;
-
+    cout << "passed" << endl;
+    
+    cout << "graph constructing ... ";
     auto t0 = chrono::high_resolution_clock::now();
-    SpMt mat = construct_matrix();
+    vvi G = construct_graph();
     auto t1 = chrono::high_resolution_clock::now();
     chrono::duration<double> elapsed = t1 - t0;
-    cout << "matrix constructed in " << elapsed.count() << "s." << endl;
+    cout << "constructed (in " << elapsed.count() << "s)" << endl;
 
+    cout << "bipartite testing ... ";
+    assert(is_bipartite(G, encode_cube(SOLVED)));
+    cout << "passed" << endl;
+
+    cout << "matrix constructing ... ";
+    t0 = chrono::high_resolution_clock::now();
+    SpMt mat = construct_matrix();
+    t1 = chrono::high_resolution_clock::now();
+    elapsed = t1 - t0;
+    cout << "constructed (in " << elapsed.count() << "s)" << endl;
+
+    cout << "-----------------------------\nstart computing matrix power ..." << endl;
     matrix_power(20, mat);
 }

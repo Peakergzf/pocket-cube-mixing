@@ -1,0 +1,20 @@
+#!/bin/bash
+
+#SBATCH --job-name=cube
+
+#SBATCH --time=10:00:00
+#SBATCH --mem-per-cpu=10280
+#SBATCH --mem=size=10280
+
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --ntasks-per-node=1
+
+#SBATCH --account=xp75
+#SBATCH --partition=m3a
+
+module load eigen/3.3.7
+
+make run
+
+exit 0
