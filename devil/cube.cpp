@@ -10,6 +10,7 @@ using namespace Eigen;
 typedef vector<int> vi;
 typedef vector<vi> vvi;
 typedef SparseMatrix<unsigned short int> SpMt;
+typedef SparseVector<unsigned short int, RowMajor> SpVc;
 
 // ========================================================================
 // struct and function declaration
@@ -20,31 +21,17 @@ struct Cube {
     vi q; // an element of Z_3^7
 
     bool operator ==(const Cube other) { return other.p == p && other.q == q; }
+
+    void print() {
+        auto print_vec = [](vi v) { cout << "["; for (auto x : v) { cout << x << " "; } cout << "]"; };
+        print_vec(p); cout << ", "; print_vec(q); cout << endl;
+    }
 };
 
-int encode_p(vi p);
-vi decode_p(int x, int n);
-
-int encode_q(vi q);
-vi decode_q(int y);
-
-int encode_cube(Cube cube);
-Cube decode_cube(int i);
-
-Cube make_move(Cube before, Cube move);
-
+// helper functions
 int factorial(int n);
 vi argsort(vi v);
 vi compose(vi sgm, vi tau);
-
-void cube_encoding_test();
-void seq_test();
-
-vvi construct_graph();
-bool is_bipartite(vvi G, int s);
-
-SpMt construct_matrix();
-SpMt matrix_power(int T, SpMt mat);
 
 // ========================================================================
 // constants and global variables
@@ -371,16 +358,22 @@ void main_test() {
 }
 
 int main() {
-    // main_test();
-
-    cout << "matrix constructing ... ";
     auto t0 = chrono::high_resolution_clock::now();
-    SpMt mat = construct_matrix();
+    SpMt q = construct_matrix();
     auto t1 = chrono::high_resolution_clock::now();
     chrono::duration<double> elapsed = t1 - t0;
-    cout << "constructed (in " << elapsed.count() << "s)" << endl;
+    cout << "matrix constructed (in " << elapsed.count() << "s)" << endl;
 
-    cout << "-------------------------------------------" << endl;
-    cout << "start computing matrix power ..." << endl;
-    matrix_power(20, mat);
+    SpVc x(N), u(N);
+    x.coeffRef(encode_cube(SOLVED)) = 1; // initialise x to be e_id
+    for (int i = 0; i < N; i++) u.coeffRef(i) = 1; 
+    
+    assert(x.cols() == q.rows());
+    for (int t = 2; t <= 40; t++) {
+        x = x * q;
+        int d = 0;
+        for (int i = 0; i < N; i++) d += abs(x.coeffRef(i) - u.coeffRef(i));
+        cout << t << "\t" << d / 18.0 << endl;
+    }
+
 }
