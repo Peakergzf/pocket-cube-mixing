@@ -1,0 +1,12 @@
+./sol
+cube encoding testing ... passed
+move sequence testing ...passed
+graph constructing ... constructed (in 176.105s)
+bipartite testing ... passed
+matrix constructing ... constructed (in 175.103s)
+-------------------------------------------
+start computing matrix power ...
+2-th power in 16.9748s (102876480 non-zeros)
+3-th power in 72.2235s (462944160 non-zeros)
+make: *** [run] Killed
+slurmstepd: error: Detected 1 oom-kill event(s) in step 12174210.batch cgroup. Some of your processes may have been killed by the cgroup out-of-memory handler.

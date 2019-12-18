@@ -1,0 +1,10 @@
+./sol
+matrix constructing ... constructed (in 179.977s)
+-------------------------------------------
+start computing matrix power ...
+2-th power in 17.2373s (102876480 non-zeros)
+3-th power in 73.0195s (462944160 non-zeros)
+4-th power in 348.666s (2064877920 non-zeros)
+terminate called after throwing an instance of 'std::bad_alloc'
+  what():  std::bad_alloc
+make: *** [run] Aborted (core dumped)

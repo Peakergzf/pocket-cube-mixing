@@ -9,7 +9,7 @@ using namespace Eigen;
 
 typedef vector<int> vi;
 typedef vector<vi> vvi;
-typedef SparseMatrix<int> SpMt;
+typedef SparseMatrix<unsigned short int> SpMt;
 
 // ========================================================================
 // struct and function declaration
@@ -314,11 +314,6 @@ SpMt construct_matrix() {
             int u = encode_cube(apply_move(cube, move));
             mat.insert(v, u) = 1;
         }
-
-        // for (int j = 0; j < M; j++) {
-        //     int u = min(v, N - M) + j;
-        //     mat.insert(v, u) = 1;
-        // }
     }
     mat.makeCompressed();
 
@@ -335,10 +330,12 @@ SpMt matrix_power(int T, SpMt mat) {
     // https://eigen.tuxfamily.org/dox/group__TutorialSparse.html#title6
     // https://eigen.tuxfamily.org/dox/group__SparseQuickRefPage.html
     SpMt prod(mat);
+    prod.makeCompressed();
     
     for (int t = 2; t < T; t++) {
         t0 = chrono::high_resolution_clock::now();
         prod = (prod * mat).pruned();
+        prod.makeCompressed();
 
         t1 = chrono::high_resolution_clock::now();
         elapsed = t1 - t0;
@@ -352,7 +349,7 @@ SpMt matrix_power(int T, SpMt mat) {
 // main program
 // ========================================================================
 
-int main() {
+void main_test() {
     cout << "cube encoding testing ... ";
     cube_encoding_test();
     cout << "passed" << endl;
@@ -371,14 +368,19 @@ int main() {
     cout << "bipartite testing ... ";
     assert(is_bipartite(G, encode_cube(SOLVED)));
     cout << "passed" << endl;
+}
+
+int main() {
+    // main_test();
 
     cout << "matrix constructing ... ";
-    t0 = chrono::high_resolution_clock::now();
+    auto t0 = chrono::high_resolution_clock::now();
     SpMt mat = construct_matrix();
-    t1 = chrono::high_resolution_clock::now();
-    elapsed = t1 - t0;
+    auto t1 = chrono::high_resolution_clock::now();
+    chrono::duration<double> elapsed = t1 - t0;
     cout << "constructed (in " << elapsed.count() << "s)" << endl;
 
-    cout << "-----------------------------\nstart computing matrix power ..." << endl;
+    cout << "-------------------------------------------" << endl;
+    cout << "start computing matrix power ..." << endl;
     matrix_power(20, mat);
 }
