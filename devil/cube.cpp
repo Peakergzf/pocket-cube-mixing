@@ -3,14 +3,16 @@
 #include <Eigen/Sparse>
 #include <chrono>
 #include <assert.h>
+#include <limits>
 
 using namespace std;
 using namespace Eigen;
 
 typedef vector<int> vi;
 typedef vector<vi> vvi;
-typedef SparseMatrix<unsigned short int> SpMt;
-typedef SparseVector<unsigned short int, RowMajor> SpVc;
+
+typedef SparseMatrix<unsigned int, RowMajor> SpMt;
+typedef SparseVector<unsigned int, RowMajor> SpVc;
 
 // ========================================================================
 // struct and function declaration
@@ -37,21 +39,19 @@ vi compose(vi sgm, vi tau);
 // constants and global variables
 // ========================================================================
 
-// Cube X =  { {4, 1, 0, 3, 6, 5, 2}, {1, 0, 1, 0, 2, 0, 2} };
-// Cube X_ = { {2, 1, 6, 3, 0, 5, 4}, {2, 0, 1, 0, 2, 0, 1} };
-// Cube Y =  { {0, 2, 6, 3, 4, 1, 5}, {0, 1, 2, 0, 0, 1, 2} };
-// Cube Y_ = { {0, 5, 1, 3, 4, 6, 2}, {0, 2, 2, 0, 0, 1, 1} };
-// Cube Z =  { {0, 1, 2, 5, 3, 6, 4}, {0, 0, 0, 1, 1, 2, 2} };
-// Cube Z_ = { {0, 1, 2, 4, 6, 3, 5}, {0, 0, 0, 2, 1, 2, 1} };
-
 Cube X =  { {4, 1, 0, 3, 6, 5, 2}, {0, 0, 0, 0, 0, 0, 0} };
 Cube X_ = { {2, 1, 6, 3, 0, 5, 4}, {0, 0, 0, 0, 0, 0, 0} };
+Cube X2 = { {6, 1, 4, 3, 2, 5, 0}, {0, 0, 0, 0, 0, 0, 0} };
+
 Cube Y =  { {0, 2, 6, 3, 4, 1, 5}, {0, 2, 1, 0, 0, 1, 2} };
 Cube Y_ = { {0, 5, 1, 3, 4, 6, 2}, {0, 2, 1, 0, 0, 1, 2} };
+Cube Y2 = { {0, 6, 5, 3, 4, 2, 1}, {0, 2, 1, 0, 0, 1, 2} };
+
 Cube Z =  { {0, 1, 2, 5, 3, 6, 4}, {0, 0, 0, 1, 2, 2, 1} };
 Cube Z_ = { {0, 1, 2, 4, 6, 3, 5}, {0, 0, 0, 1, 2, 2, 1} };
+Cube Z2 = { {0, 1, 2, 6, 5, 4, 3}, {0, 0, 0, 1, 2, 2, 1} };
 
-vector<Cube> MOVES = {X, X_, Y, Y_, Z, Z_};
+vector<Cube> MOVES = {X, X_, X2, Y, Y_, Y2, Z, Z_, Z2};
 
 Cube SOLVED = { {0, 1, 2, 3, 4, 5, 6}, {0, 0, 0, 0, 0, 0, 0} };
 
@@ -220,6 +220,15 @@ void cube_encoding_test() {
 
 void seq_test() {
     Cube cube = SOLVED, id = SOLVED;
+    for (int i = 0; i < 4; i++) { apply_move(cube, X); } assert(id == cube);
+    for (int i = 0; i < 4; i++) { apply_move(cube, X_); } assert(id == cube);
+    for (int i = 0; i < 4; i++) { apply_move(cube, Y); } assert(id == cube);
+    for (int i = 0; i < 4; i++) { apply_move(cube, Y_); } assert(id == cube);
+    for (int i = 0; i < 4; i++) { apply_move(cube, Z); } assert(id == cube);
+    for (int i = 0; i < 4; i++) { apply_move(cube, Z_); } assert(id == cube);
+    for (int i = 0; i < 2; i++) { apply_move(cube, X2); } assert(id == cube);
+    for (int i = 0; i < 2; i++) { apply_move(cube, Y2); } assert(id == cube);
+    for (int i = 0; i < 2; i++) { apply_move(cube, Z2); } assert(id == cube);
     // seq1
     for (int i = 0; i < 6; i++) {
         cube = apply_move(cube, Y); // R
@@ -364,16 +373,22 @@ int main() {
     chrono::duration<double> elapsed = t1 - t0;
     cout << "matrix constructed (in " << elapsed.count() << "s)" << endl;
 
-    SpVc x(N), u(N);
-    x.coeffRef(encode_cube(SOLVED)) = 1; // initialise x to be e_id
-    for (int i = 0; i < N; i++) u.coeffRef(i) = 1; 
+    SpVc x(N);
+    x.coeffRef(0) = 1; // initialise x to be e1
+    double u = 1.0 / M;
     
     assert(x.cols() == q.rows());
-    for (int t = 2; t <= 40; t++) {
+    for (int t = 1; t <= 50; t++) {
+        if (t == 1) cout << u * N << endl;
         x = x * q;
-        int d = 0;
-        for (int i = 0; i < N; i++) d += abs(x.coeffRef(i) - u.coeffRef(i));
-        cout << t << "\t" << d / 18.0 << endl;
+        double d = 0.0;
+        for (int i = 0; i < N; i++) {
+            d += fabsl(x.coeffRef(i) / pow(M, t) - u);
+        }
+        cout << t << "\t";
+        cout << fixed << setprecision(20) << d << endl;
     }
 
+    // cout << std::numeric_limits<double>::min() << endl;
+    // cout << std::numeric_limits<double>::max() << endl;
 }
