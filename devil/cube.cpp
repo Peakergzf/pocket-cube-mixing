@@ -375,18 +375,17 @@ int main() {
 
     SpVc x(N);
     x.coeffRef(0) = 1; // initialise x to be e1
-    double u = 1.0 / M;
+    double u = 1.0 / N;
     
     assert(x.cols() == q.rows());
     for (int t = 1; t <= 50; t++) {
-        if (t == 1) cout << u * N << endl;
         x = x * q;
         double d = 0.0;
         for (int i = 0; i < N; i++) {
             d += fabsl(x.coeffRef(i) / pow(M, t) - u);
         }
         cout << t << "\t";
-        cout << fixed << setprecision(20) << d << endl;
+        cout << fixed << setprecision(20) << d / 2 << endl;
     }
 
     // cout << std::numeric_limits<double>::min() << endl;

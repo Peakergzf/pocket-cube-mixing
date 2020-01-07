@@ -50,6 +50,7 @@ Cube Z_ = { {0, 1, 2, 4, 6, 3, 5}, {0, 0, 0, 1, 2, 2, 1} };
 Cube Z2 = { {0, 1, 2, 6, 5, 4, 3}, {0, 0, 0, 1, 2, 2, 1} };
 
 vector<Cube> MOVES = {X, X_, X2, Y, Y_, Y2, Z, Z_, Z2};
+// vector<Cube> MOVES = {X, X_, Y, Y_, Z, Z_};
 
 Cube SOLVED = { {0, 1, 2, 3, 4, 5, 6}, {0, 0, 0, 0, 0, 0, 0} };
 
@@ -214,6 +215,7 @@ void test() {
 
 
 void power() {
+    // each of the N rows has M non-zero entries
     string sizes_str = "[";
     for (int i = 0; i < N; i++) {
         sizes_str += to_string(M);
@@ -224,14 +226,14 @@ void power() {
     char *sizes_c = new char [sizes_str.length()+1];
     strcpy(sizes_c, sizes_str.c_str());
 
-    // https://www.alglib.net/translator/man/manual.cpp.html
-    // Ctrl+F sparse_d_crs example
+    // https://www.alglib.net/translator/man/manual.cpp.html#example_sparse_d_crs
     auto t0 = chrono::high_resolution_clock::now();
     sparsematrix q;
 
     integer_1d_array row_sizes(sizes_c);
     // https://www.alglib.net/translator/man/manual.cpp.html#sub_sparsecreatecrs
     sparsecreatecrs(N, N, row_sizes, q);
+    // initialize from left to right, from top to bottom
     for (int v = 0; v < N; v++) {
         Cube cube = decode_cube(v);
         vi u_vec;
@@ -247,6 +249,13 @@ void power() {
     chrono::duration<double> elapsed = t1 - t0;
     cout << "matrix constructed (in " << elapsed.count() << "s)" << endl;
 
+    // // check that q is symmetric
+    // for (int i = 0; i < N; i++) {
+    //     for (int j = i + 1; j < N; j++) {
+    //         assert(sparseget(q, i, j) == sparseget(q, j, i));
+    //     }
+    // }
+
     string x_str = "[1,";
     for (int i = 1; i < N; i++) {
         x_str += "0";
@@ -258,7 +267,7 @@ void power() {
 
     real_1d_array x(x_c);
 
-    double u = 1.0 / M;
+    double u = 1.0 / N;
 
     for (int t = 1; t <= 50; t++) {
         real_1d_array y = "[]";
@@ -270,7 +279,7 @@ void power() {
             d += fabsl(x[i] / pow(M, t) - u);
         }
         cout << t << "\t";
-        cout << fixed << setprecision(20) << d << endl;
+        cout << fixed << setprecision(20) << d / 2 << endl;
     }
 }
 
