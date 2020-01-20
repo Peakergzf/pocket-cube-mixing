@@ -1,7 +1,4 @@
 #include <bits/stdc++.h>
-#include <chrono>
-#include <assert.h>
-#include <limits>
 
 using namespace std;
 
@@ -207,6 +204,7 @@ int main() {
 
     for (int t = 1; t <= 50; t++) {
         double d = 0.0;
+
         for (int i = 0; i < N; i++) {
             double xi = 0.0; // new x[i]
             for (int j = 0; j < M; j++) {
@@ -219,3 +217,15 @@ int main() {
         cout << fixed << setprecision(20) << d / 2 << endl;
     }
 }
+
+
+/*
+acknowledgements
+
+the cube state representation is inspired from
+https://possiblywrong.wordpress.com/2011/08/28/solving-the-2x2x2-rubiks-cube/
+
+the matrix vector multiplication method is derived by Eric Zhou
+http://users.monash.edu/~ezhou/
+
+*/
