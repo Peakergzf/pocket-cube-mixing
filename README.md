@@ -1,1 +1,1 @@
-# rubiks-cube-devil-number
+# Pocket Cube Mixing
