@@ -204,14 +204,14 @@ int main() {
 
     for (int t = 1; t <= 50; t++) {
         double d = 0.0;
-
+        vector<double> cur_x(x);
         for (int i = 0; i < N; i++) {
             double xi = 0.0; // new x[i]
             for (int j = 0; j < M; j++) {
-                xi += x[Y[i][j]] / M;
+                xi += cur_x[Y[i][j]] / M;
             }
-            x[i] = xi;
             d += fabsl(xi - ui);
+            x[i] = xi;
         }
         cout << t << "\t";
         cout << fixed << setprecision(20) << d / 2 << endl;
